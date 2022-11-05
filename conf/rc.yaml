@@ -1,0 +1,17 @@
+port: 9736
+web_port: 9737
+log_path: log
+log_level: DEBUG # enum: debug|info|warn|error
+log_expire_day: 3
+
+redis:
+  servers: 127.0.0.1:8300
+  preconnect: true
+  msg_max_length_limit: 200
+  slowlog_slower_than: 10000
+  timeout: 0
+  conn_timeout: 500
+  server_retry_timeout: 500
+  password: passwd123
+  disable_slave: false
+  server_connections: 1

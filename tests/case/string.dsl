@@ -1,0 +1,132 @@
+# redis-test string DSL
+
+SET Foo 1
+RET OK
+
+GET Foo
+RET "1"
+
+GET
+RET "ERR wrong number of arguments"
+
+MGET
+RET "ERR wrong number of arguments"
+
+GET Foo Foo
+RET "ERR wrong number of arguments"
+
+INCR Foo
+RET 2
+
+DEL unknown_key
+GET unknown_key
+RET nil
+
+MGET Foo unknown_key
+RET ["2", nil]
+RET_LEN 2
+
+MGET unknown_key Foo
+RET [nil, "2"]
+RET_LEN 2
+
+DEL Foo Foo2 Foo3
+MSET Foo f1 Foo2 f2 Foo3 f3
+RET OK
+
+MSET Foo f1 Foo2 f2 Foo3
+RET "ERR wrong number of arguments"
+
+MGET Foo Foo3 Foo2
+RET [f1, f3, f2]
+RET_LEN 3
+
+DEL Foo2 Foo3
+RET 2
+
+MGET Foo Foo2
+RET [f1, nil]
+RET_LEN 2
+
+DEL Foo
+GET Foo
+RET nil
+
+SET Foo 1.2
+RET OK
+
+GET Foo
+RET "1.2"
+
+SET Foo 2
+INCR Foo
+RET 3
+
+SET Foo -1.2
+GET Foo
+RET "-1.2"
+
+SET Foo "This is my test key"
+GETRANGE Foo 0 3
+RET "This"
+GETRANGE Foo 0 -1
+RET "This is my test key"
+GETSET Foo 6
+RET "This is my test key"
+SETNX Foo bar
+RET 0
+INCRBY Foo 3
+RET 9
+DECR Foo
+RET 8
+DECRBY Foo 5
+RET 3
+APPEND Foo "nokia"
+RET 6
+GET Foo
+RET "3nokia"
+
+DEL bit
+SETBIT bit 10086 1
+RET 0
+GETBIT bit 10086
+RET 1
+GETBIT bit 100
+RET 0
+
+DEL a mfqw b c bgqk ezoh
+SET a 1
+SET mfqw 2
+SET b 3
+SET c 4
+SET bgqk 5
+SET ezoh 6
+RET OK
+MGET a b c mfqw bgqk ezoh
+RET ["1", "3", "4", "2", "5", "6"]
+MGET mfqw bgqk ezoh a b c
+RET ["2", "5", "6", "1", "3", "4"]
+MGET a mfqw b bgqk c ezoh
+RET ["1", "2", "3", "5", "4", "6"]
+DEL a b c
+MGET a mfqw b bgqk c ezoh
+RET [nil, "2", nil, "5", nil, "6"]
+
+SET a "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+RET "ERR req msg length too large"
+
+SET a "a2345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890"
+SET b "b2345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890"
+GET a
+RET "a2345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890"
+MGET a b
+RET "ERR rsp msg length too large"
+APPEND a "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789001234567890"
+RET 202
+GET a
+RET "ERR rsp msg length too large"
+MGET a b
+RET "ERR rsp msg length too large"
+
+DEL Foo bit a b c mfqw bgqk ezoh
+RET 7
