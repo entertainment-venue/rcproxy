@@ -8,6 +8,8 @@ English | [中文](README_ZH.md)
 
 `rcproxy` is based on `gnet` network framework, and uses a single thread/goroutine network model with a high-performance event loop. Test performance is comparable to `twemproxy`.
 
+`rcproxy` inspired by `twemproxy`.
+
 ## Features
 
 - [x] High-performance event-loop under networking model of single thread/goroutine.
@@ -18,6 +20,7 @@ English | [中文](README_ZH.md)
 - [x] Read/Write Splitting, and load balancing between slaves.
 - [x] Supports IP whitelist dynamic loading.
 - [x] Supports `Prometheus Metrics` endpoint, exposure observation metrics.
+- [x] Verified in Redis 3.0.3/6.2.6
 - [x] Works with Linux, OS X.
 
 ## Getting Started
@@ -30,7 +33,13 @@ cd rcproxy && make
 ./bin/rcproxy -p conf -c yc.yaml -a authip.yaml
 ```
 
-# License
+## Details of rcproxy
+
+* [Redis Command Support](./docs/command.md)
+* [Performance](./docs/performance.md)
+* [Rcproxy Endpoints](./docs/endpoints.md)
+
+## License
 
 Source code of `rcproxy` should be distributed under the Apache-2.0 license.
 

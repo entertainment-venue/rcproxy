@@ -8,6 +8,8 @@
 
 `rcproxy`基于`gnet`网络框架开发，使用了单线/协程的事件轮询网络模型，极致的压榨CPU单核性能，实测性能与`twemproxy`相媲美。
 
+`rcproxy`灵感来自于`twemproxy`。
+
 ## 功能
 
 - [x] 高性能，基于单线程（或单协程）网络模型开发
@@ -18,6 +20,7 @@
 - [x] 读写分离，从库负载均衡
 - [x] IP白名单，支持热加载
 - [x] 支持`Prometheus Metrics`接口，暴露观察指标
+- [x] 在Redis3.0.3/6.2.6版本通过验证
 - [x] 支持**Linux/OS X**多种平台
 
 ## 开始
@@ -29,6 +32,12 @@ git clone git@github.com:entertainment-venue/rcproxy.git
 cd rcproxy && make
 ./bin/rcproxy -p conf -c yc.yaml -a authip.yaml
 ```
+
+## 文档
+
+* [支持的Redis命令](./docs/command.md)
+* [性能](./docs/performance.md)
+* [接口文档](./docs/endpoints.md)
 
 ## 证书
 
