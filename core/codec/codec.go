@@ -45,6 +45,7 @@ const (
 	ErrUnKnownSlot                Error = "-ERR unknown slot\r\n"
 	ErrUnKnownProxyPoolError      Error = "-ERR unknown proxy pool\r\n"
 	ErrUnKnownProxyPoolConnError  Error = "-ERR unknown proxy pool conn\r\n"
+	ErrUnKnownMget                Error = "-ERR unknown mget error\r\n"
 	ErrMsgReqTooLarge             Error = "-ERR req msg length too large\r\n"
 	ErrMsgRspTooLarge             Error = "-ERR rsp msg length too large\r\n"
 	ErrMsgReqWrongArgumentsNumber Error = "-ERR wrong number of arguments\r\n"

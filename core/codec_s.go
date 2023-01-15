@@ -183,6 +183,11 @@ func (rc *SRespCodec) MGet(f *Frag, sfd int) error {
 	f.Rsp = rc.parseMGet(f)
 	f.Done = true
 
+	if len(f.Rsp) < 1 {
+		f.Error = codec.ErrUnKnownMget
+		return nil
+	}
+
 	if f.Peer.FragDoneNumber < len(f.Peer.Body) {
 		logging.Debugf("[%dm|%df][%dc|%ds] mget frag done %d, waiting for other frags", f.MsgId(), f.Id, f.OwnerFd(), sfd, f.Peer.FragDoneNumber)
 		return codec.Continue
@@ -281,15 +286,19 @@ func (rc *SRespCodec) parseMGet(f *Frag) []string {
 
 	for {
 		line, err := buf.ReadLine()
-		if err != nil {
+		if err == codec.EmptyLine {
 			return msg
+		}
+		if err != nil {
+			return nil
 		}
 		n, _ := parseLen(line[1:])
 		if n < 0 {
 			msg = append(msg, fmt.Sprintf("%s\r\n", line))
 			continue
 		}
-		v, _ := buf.ReadLine()
+		v, _ := buf.ReadN(n)
+		_, _ = buf.ReadN(2)
 		msg = append(msg, fmt.Sprintf("%s\r\n%s\r\n", line, v))
 	}
 }

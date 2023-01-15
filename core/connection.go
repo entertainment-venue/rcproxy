@@ -192,6 +192,20 @@ func (c *conn) sread() (f *Frag, err error) {
 	}
 
 	f.Peer.FragDoneNumber++
+
+	if f.Error.Nil() {
+		switch f.Peer.Type {
+		case codec.ReqMget:
+			err = EngineGlobal.sCodec.MGet(f, c.fd)
+		case codec.ReqMset:
+			err = EngineGlobal.sCodec.MSet(f, c.fd)
+		case codec.ReqDel:
+			err = EngineGlobal.sCodec.Del(f, c.fd)
+		default:
+			err = EngineGlobal.sCodec.Default(f)
+		}
+	}
+
 	if f.Error.NotNil() {
 		msg := f.Peer
 		msg.Error = f.Error
@@ -202,17 +216,6 @@ func (c *conn) sread() (f *Frag, err error) {
 			v.Done = true
 		}
 		return f, nil
-	}
-
-	switch f.Peer.Type {
-	case codec.ReqMget:
-		err = EngineGlobal.sCodec.MGet(f, c.fd)
-	case codec.ReqMset:
-		err = EngineGlobal.sCodec.MSet(f, c.fd)
-	case codec.ReqDel:
-		err = EngineGlobal.sCodec.Del(f, c.fd)
-	default:
-		err = EngineGlobal.sCodec.Default(f)
 	}
 
 	return f, err
