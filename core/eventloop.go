@@ -493,12 +493,11 @@ func (el *eventloop) msgTimeout() {
 		}
 		msg.Error = codec.ErrMsgRequestTimeout
 		if c == nil || !c.IsOpened() {
-			logging.Infof("[%dm|%df][%dc] try to send request timeout but client already closed", frag.MsgId(), frag.Id, frag.OwnerFd())
+			logging.Warnf("[%dm|%df][%dc] try to send request timeout but client already closed", frag.MsgId(), frag.Id, frag.OwnerFd())
 			continue
 		}
 		c.AsyncWrite(codec.ErrMsgRequestTimeout.Bytes(), nil)
-		logging.Infof("[%dm|%df][%dc] request timeout, consider raising config '[proxy]timeout=%d', send res: %s", frag.MsgId(), frag.Id, frag.OwnerFd(), el.engine.opts.RedisRequestTimeout, codec.ErrMsgRequestTimeout.ShortString())
-		c.Discard(0)
+		logging.Warnf("[%dm|%df][%dc] request timeout, consider raising config '[proxy]timeout=%d', send res: %s", frag.MsgId(), frag.Id, frag.OwnerFd(), el.engine.opts.RedisRequestTimeout, codec.ErrMsgRequestTimeout.ShortString())
 	}
 }
 

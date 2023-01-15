@@ -163,7 +163,7 @@ func (f *Frag) MsgType() codec.Command {
 }
 
 func (f *Frag) ReqString() string {
-	if len(f.Req) < 1 {
+	if f == nil || len(f.Req) < 1 {
 		return ""
 	}
 	var buf bytes.Buffer
@@ -184,7 +184,7 @@ func (f *Frag) ReqString() string {
 }
 
 func (f *Frag) RspBodyString() string {
-	if len(f.RspBody) < 1 {
+	if f == nil || len(f.RspBody) < 1 {
 		return ""
 	}
 	var buf bytes.Buffer
@@ -217,7 +217,7 @@ func (p *fragPool) Get() *Frag {
 }
 
 func (m *Msg) BodyString() string {
-	if len(m.Body) < 1 {
+	if m == nil || len(m.Body) < 1 {
 		return ""
 	}
 	var buf bytes.Buffer
@@ -246,7 +246,7 @@ func (m *Msg) BodyString() string {
 }
 
 func (m *Msg) RspBodyString() string {
-	if len(m.RspBody) < 1 {
+	if m == nil || len(m.RspBody) < 1 {
 		return ""
 	}
 	var buf bytes.Buffer

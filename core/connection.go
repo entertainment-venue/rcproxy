@@ -180,12 +180,12 @@ func (c *conn) sread() (f *Frag, err error) {
 		return f, codec.MovedOrAsk
 	}
 
+	f.slowLogCheck(c)
+
 	if f.Done {
-		logging.Debugf("[%dm|%df][%dc|%ds] frag already done", f.MsgId(), f.Id, f.OwnerFd(), c.fd)
+		logging.Warnf("[%dm|%df][%dc|%ds] frag already done, req: %s, res: %s", f.MsgId(), f.Id, f.OwnerFd(), c.fd, f.ReqString(), f.RspBodyString())
 		return nil, codec.Continue
 	}
-
-	f.slowLogCheck(c)
 
 	if EngineGlobal.sCodec.sizeTooLarge(len(f.RspBody)) {
 		f.Error = codec.ErrMsgRspTooLarge
