@@ -262,6 +262,23 @@ Loop:
 			cur = cur.prev
 		}
 
+		for len(bs) > 0 {
+			var r = len(bs)
+			if r >= iovMax {
+				r = iovMax
+			}
+
+			if _, err = c.writev(bs[0:r]); err != nil {
+				logging.Warnf("[%dm][%dc] write to client failed, error: %s, body: %s", cur.Id, c.fd, err, cur.RspBodyString())
+				break
+			}
+			if !c.opened {
+				logging.Warnf("[%dm][%dc] write failed because of client closed", curId, curFd)
+				break
+			}
+			bs = bs[r:]
+		}
+
 		if _, err = c.writev(bs); err != nil {
 			logging.Warnf("[%dm][%dc] write to client failed, error: %s, body: %s", cur.Id, c.fd, err, cur.RspBodyString())
 			continue

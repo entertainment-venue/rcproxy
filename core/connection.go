@@ -321,13 +321,36 @@ func (c *conn) handleWriteSignal(_ interface{}) error {
 		return nil
 	}
 
+	var curId uint64
+	var curFd = c.fd
+
 	var bs = make([][]byte, c.outFragQueue.count)
+	bs = bs[:0]
+
 	for c.outFragQueue.head != nil {
 		head := c.outFragQueue.head
+		curId = head.Id
 		c.dequeueOutFrag()
 		c.enqueueInFrag(head)
 		bs = append(bs, head.Req)
 	}
+
+	for len(bs) > 0 {
+		var r = len(bs)
+		if r >= iovMax {
+			r = iovMax
+		}
+		if _, err := c.writev(bs[0:r]); err != nil {
+			logging.Errorf("[%df][%ds] write to redis failed, error: %s", curId, curFd, err)
+			break
+		}
+		if !c.opened {
+			logging.Errorf("[%df][%ds] write to redis failed", curId, curFd)
+			break
+		}
+		bs = bs[r:]
+	}
+
 	_, err := c.writev(bs)
 	return err
 }
@@ -511,7 +534,9 @@ func (c *conn) enqueueInFrag(frag *Frag) {
 
 func (c *conn) EnqueueOutFrag(f *Frag) {
 	c.outFragQueue.PushTail(f)
-	logging.Debugfunc(func() string { return fmt.Sprintf("[%dm|%df][%dc|%ds] frag enqueue: %s", f.MsgId(), f.Id, f.OwnerFd(), c.fd, f.ReqString()) })
+	logging.Debugfunc(func() string {
+		return fmt.Sprintf("[%dm|%df][%dc|%ds] frag enqueue: %s", f.MsgId(), f.Id, f.OwnerFd(), c.fd, f.ReqString())
+	})
 
 	if err := c.sendWriteSignal(); err != nil {
 		logging.Errorf("[%dm|%df][%dc|%ds] failed to send write signal, err: %s", f.MsgId(), f.Id, f.OwnerFd(), c.fd, err)
