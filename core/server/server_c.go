@@ -65,10 +65,6 @@ func (ls *listenServer) OnCReact(r *core.Msg, c core.CConn) (out []byte, action 
 	core.GlobalStats.ReqCmdIncr(r.Type)
 
 	for slot, frag := range r.Body {
-		if len(frag.Key) < 1 {
-			logging.Errorf("[%dm|%df][%dc] no key found, type: %d, body: %s", r.Id, frag.Id, c.Fd(), r.Type, frag.ReqString())
-			return codec.ErrUnKnown.Bytes(), core.None
-		}
 		if r.Type == codec.ReqAuth {
 			if len(ls.Password) < 1 {
 				return codec.ErrAuthNeedNtPassword.Bytes(), core.None
@@ -105,7 +101,9 @@ func (ls *listenServer) OnCReact(r *core.Msg, c core.CConn) (out []byte, action 
 		}
 		frag.Owner = c
 
-		logging.Debugfunc(func() string { return fmt.Sprintf("[%dm|%df][%dc|%ds] key '%s' maps to server '%s' in slot %d", r.Id, frag.Id, c.Fd(), sConn.Fd(), frag.Key, addr, slot) })
+		logging.Debugfunc(func() string {
+			return fmt.Sprintf("[%dm|%df][%dc|%ds] key '%s' maps to server '%s' in slot %d", r.Id, frag.Id, c.Fd(), sConn.Fd(), frag.Key, addr, slot)
+		})
 
 		sConn.EnqueueOutFrag(frag)
 	}
