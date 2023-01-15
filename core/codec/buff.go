@@ -118,7 +118,7 @@ func (b *Buffer) ReadLine() ([]byte, error) {
 		return nil, EmptyLine
 	}
 	if buf[idx-1] != CRByte {
-		return nil, ErrCRNotFound
+		return nil, ErrInvalidResp
 	}
 	return buf[:len(buf)-2], nil
 }

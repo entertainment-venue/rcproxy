@@ -215,5 +215,9 @@ func (ls *listenServer) OnMoved(addr string, slot int32, s core.SConn, f *core.F
 
 // OnCClosed fires when a client connection has been closed.
 func (ls *listenServer) OnCClosed(c core.CConn, err error) {
+	if err != nil {
+		logging.Errorf("[%dc] client conn closed, local: %s, remote: %s, err: %s", c.Fd(), c.LocalAddr(), c.RemoteAddr(), err)
+		return
+	}
 	logging.Debugf("[%dc] client conn closed, local: %s, remote: %s", c.Fd(), c.LocalAddr(), c.RemoteAddr())
 }

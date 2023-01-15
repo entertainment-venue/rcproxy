@@ -41,3 +41,23 @@ func FormatRedisRESPMessages(resp []byte) string {
 	}
 	return B2S(bs)
 }
+
+// FormatRedisIovRESPMessages formatting redis Iov RESP messages
+func FormatRedisIovRESPMessages(respList [][]byte) string {
+	l := 0
+	for _, v := range respList {
+		l += len(v)
+	}
+	var bs = make([]byte, l)
+	bs = bs[:0]
+	for _, resp := range respList {
+		for _, v := range resp {
+			if v == '\r' || v == '\n' {
+				bs = append(bs, '.')
+				continue
+			}
+			bs = append(bs, v)
+		}
+	}
+	return B2S(bs)
+}

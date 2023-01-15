@@ -34,6 +34,7 @@ import (
 	"rcproxy/core/internal/netpoll"
 	gerrors "rcproxy/core/pkg/errors"
 	"rcproxy/core/pkg/logging"
+	"rcproxy/core/pkg/utils"
 )
 
 type eventloop struct {
@@ -356,7 +357,7 @@ func (el *eventloop) closeConn(c *conn, err error, closeType ConnCloseType) (rer
 				iov = iov[:iovMax]
 			}
 			if n, e := io.Writev(c.fd, iov); e != nil {
-				logging.Warnf("closeConn: error occurs when sending data back to peer, %v", e)
+				logging.Errorf("[%d%c] closeConn: error occurs when sending data back to peer, err: %v, iov: %s", c.fd, c.connType, err, utils.FormatRedisIovRESPMessages(iov))
 				break
 			} else {
 				_, _ = c.outboundBuffer.Discard(n)

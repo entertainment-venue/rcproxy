@@ -67,5 +67,9 @@ func (ls *listenServer) OnSClosed(s core.SConn, err error) {
 		}
 		logging.Errorf("[%dm|%df][%dc|%ds] redis server closed, record the client conn", frag.MsgId(), frag.Id, frag.OwnerFd(), s.Fd())
 	}
-	logging.Infof("[%ds] server conn closed, local: %s, remote: %s, error: %+v", s.Fd(), s.LocalAddr(), s.RemoteAddr(), err)
+	if err != nil {
+		logging.Infof("[%ds] server conn closed, local: %s, remote: %s, error: %s", s.Fd(), s.LocalAddr(), s.RemoteAddr(), err)
+		return
+	}
+	logging.Infof("[%ds] server conn closed, local: %s, remote: %s", s.Fd(), s.LocalAddr(), s.RemoteAddr())
 }

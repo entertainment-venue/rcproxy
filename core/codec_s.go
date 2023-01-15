@@ -100,7 +100,9 @@ func (rc *SRespCodec) Decode(s SConn) (*Frag, error) {
 
 	f.Type = rType
 	f.RspBody = append(f.RspBody[:0], buf.ReadBuf()...)
-	logging.Debugfunc(func() string { return fmt.Sprintf("[%dm|%df][%dc|%ds] frag dequeue: %s", f.MsgId(), f.Id, f.OwnerFd(), s.Fd(), f.RspBodyString()) })
+	logging.Debugfunc(func() string {
+		return fmt.Sprintf("[%dm|%df][%dc|%ds] frag dequeue: %s", f.MsgId(), f.Id, f.OwnerFd(), s.Fd(), f.RspBodyString())
+	})
 
 	s.Discard(buf.ReadSize())
 	return f, nil
@@ -158,7 +160,7 @@ func (rc *SRespCodec) readReply(buf *codec.Buffer) (codec.Command, error) {
 			return codec.UNKNOWN, err
 		}
 		if crlf[0] != '\r' || crlf[1] != '\n' {
-			return codec.UNKNOWN, codec.BadLine
+			return codec.UNKNOWN, codec.ErrInvalidResp
 		}
 		return codec.RspBulk, nil
 	case '*':
@@ -174,7 +176,7 @@ func (rc *SRespCodec) readReply(buf *codec.Buffer) (codec.Command, error) {
 		}
 		return codec.RspMultibulk, nil
 	}
-	return codec.UNKNOWN, codec.BadLine
+	return codec.UNKNOWN, codec.ErrInvalidResp
 }
 
 func (rc *SRespCodec) MGet(f *Frag, sfd int) error {

@@ -62,7 +62,9 @@ func (rc *CRespCodec) Decode(c CConn) (*Msg, error) {
 
 	msg, err := rc.parseLine(buf)
 	if err != nil {
-		logging.Warnf("[%dm][%dc] unexpect resp, buf: %s", msgId, c.Fd(), utils.FormatRedisRESPMessages(buf.PeekAll()))
+		if err == codec.ErrInvalidResp {
+			logging.Warnf("[%dm][%dc] unexpect resp, buf: %s", msgId, c.Fd(), utils.FormatRedisRESPMessages(buf.PeekAll()))
+		}
 		return nil, err
 	}
 	n--
@@ -116,7 +118,9 @@ func (rc *CRespCodec) Frag1(c CConn, n int, resp *Msg, buf *codec.Buffer) error 
 	for i := 0; i < n; i++ {
 		msg, err := rc.parseLine(buf)
 		if err != nil {
-			logging.Warnf("[%dm][%dc] unexpect resp, buf: %s", resp.Id, c.Fd(), utils.FormatRedisRESPMessages(buf.PeekAll()))
+			if err == codec.ErrInvalidResp {
+				logging.Warnf("[%dm][%dc] unexpect resp, buf: %s", resp.Id, c.Fd(), utils.FormatRedisRESPMessages(buf.PeekAll()))
+			}
 			return err
 		}
 		seg := string(msg)
@@ -136,12 +140,16 @@ func (rc *CRespCodec) Frag2(c CConn, n int, resp *Msg, buf *codec.Buffer) error 
 	for i := 0; i < n; i = i + 2 {
 		msg, err := rc.parseLine(buf)
 		if err != nil {
-			logging.Warnf("[%dm][%dc] unexpect resp, buf: %s", resp.Id, c.Fd(), utils.FormatRedisRESPMessages(buf.PeekAll()))
+			if err == codec.ErrInvalidResp {
+				logging.Warnf("[%dm][%dc] unexpect resp, buf: %s", resp.Id, c.Fd(), utils.FormatRedisRESPMessages(buf.PeekAll()))
+			}
 			return err
 		}
 		val, err := rc.parseLine(buf)
 		if err != nil {
-			logging.Warnf("[%dm][%dc] unexpect resp, buf: %s", resp.Id, c.Fd(), utils.FormatRedisRESPMessages(buf.PeekAll()))
+			if err == codec.ErrInvalidResp {
+				logging.Warnf("[%dm][%dc] unexpect resp, buf: %s", resp.Id, c.Fd(), utils.FormatRedisRESPMessages(buf.PeekAll()))
+			}
 			return err
 		}
 
@@ -168,7 +176,9 @@ func (rc *CRespCodec) Eval(c CConn, n int, resp *Msg, buf *codec.Buffer) error {
 	for i := 0; i < n; i++ {
 		msg, err := rc.parseLine(buf)
 		if err != nil {
-			logging.Warnf("[%dm][%dc] unexpect resp, buf: %s", resp.Id, c.Fd(), utils.FormatRedisRESPMessages(buf.PeekAll()))
+			if err == codec.ErrInvalidResp {
+				logging.Warnf("[%dm][%dc] unexpect resp, buf: %s", resp.Id, c.Fd(), utils.FormatRedisRESPMessages(buf.PeekAll()))
+			}
 			return err
 		}
 		if i == 2 {
@@ -190,7 +200,9 @@ func (rc *CRespCodec) Default(c CConn, n int, resp *Msg, buf *codec.Buffer) erro
 	for i := 0; i < n; i++ {
 		msg, err := rc.parseLine(buf)
 		if err != nil {
-			logging.Warnf("[%dm][%dc] unexpect resp, buf: %s", resp.Id, c.Fd(), utils.FormatRedisRESPMessages(buf.PeekAll()))
+			if err == codec.ErrInvalidResp {
+				logging.Warnf("[%dm][%dc] unexpect resp, buf: %s", resp.Id, c.Fd(), utils.FormatRedisRESPMessages(buf.PeekAll()))
+			}
 			return err
 		}
 		if i == 0 {
@@ -286,7 +298,7 @@ func (rc *CRespCodec) parseLine(buf *codec.Buffer) ([]byte, error) {
 		}
 
 		if crlf[0] != '\r' || crlf[1] != '\n' {
-			return nil, codec.BadLine
+			return nil, codec.ErrInvalidResp
 		}
 		return b, nil
 	default:
