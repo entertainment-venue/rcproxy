@@ -249,15 +249,26 @@ Loop:
 		}
 
 		var bs = make([][]byte, c.inMsgQueue.count)
+		bs = bs[:0]
 		cur := c.inMsgQueue.head
+
+		var curId uint64
+		var curFd = c.fd
+
 		for cur != nil {
+			curId = cur.Id
 			bs = append(bs, cur.RspBody)
 			logging.Debugfunc(func() string { return fmt.Sprintf("[%dm][%dc] got res: %s", cur.Id, c.Fd(), cur.RspBodyString()) })
 			cur = cur.prev
 		}
 
 		if _, err = c.writev(bs); err != nil {
-			logging.Errorf("[%dm][%dc] write to client failed, error: %s, body: %s", cur.Id, c.fd, err, cur.RspBodyString())
+			logging.Warnf("[%dm][%dc] write to client failed, error: %s, body: %s", cur.Id, c.fd, err, cur.RspBodyString())
+			continue
+		}
+
+		if !c.opened {
+			logging.Warnf("[%dm][%dc] write failed because of client closed", curId, curFd)
 			continue
 		}
 
