@@ -97,8 +97,14 @@ func DialWriteTimeout(d time.Duration) DialOption {
 	}}
 }
 
-// DialContext connects to the Redis server at the given network and
-// address using the specified options and context.
+// DialConnectTimeout specifies the timeout for connecting to the redis server.
+func DialConnectTimeout(d time.Duration) DialOption {
+	return DialOption{func(do *dialOptions) {
+		do.dialer.Timeout = d
+	}}
+}
+
+// Dial connects to the Redis server at the given address
 func Dial(address, passwd string, options ...DialOption) (Conn, error) {
 	do := dialOptions{
 		dialer: &net.Dialer{

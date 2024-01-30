@@ -16,16 +16,19 @@
 package core
 
 import (
+	"context"
 	"errors"
 	"time"
 
 	"rcproxy/core/pkg/logging"
+	"rcproxy/core/pkg/redis"
 )
 
 type Pool struct {
 	Dial func(addr string, isSlave bool) (SConn, error)
 
-	Addr string
+	Addr   string
+	Passwd string
 
 	maxActive int        // maximum number of connections to each redis node.
 	active    activeList // active connections. Note that all connections are active.
@@ -41,17 +44,26 @@ type Pool struct {
 
 	isSlave bool // whether it is a slave node.
 	closed  bool // set to true when the pool is closed.
+
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 func (eng *engine) newPool(addr string, isSlave bool) *Pool {
-	return &Pool{
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	p := &Pool{
 		Addr:         addr,
+		Passwd:       eng.opts.RedisPasswd,
 		Dial:         eng.Dial,
 		isSlave:      isSlave,
 		maxActive:    eng.opts.RedisServerConnections,
 		AutoBanFlag:  false,
 		LiftBanOrder: 0,
+		ctx:          ctx,
+		cancel:       cancelFunc,
 	}
+	go p.monitor()
+	return p
 }
 
 func (p *Pool) Get() SConn {
@@ -107,6 +119,7 @@ func (p *Pool) Close() {
 	}
 	p.Release()
 	p.closed = true
+	p.cancel()
 }
 
 // Close releases the resources used by the pool.
@@ -135,6 +148,70 @@ func (p *Pool) SetIsSlave(isSlave bool) {
 		p.isSlave = isSlave
 		p.Release()
 		logging.Infof("update server %s set isSlave %t with all conn closed", p.Addr, isSlave)
+	}
+}
+
+func (p *Pool) monitor() {
+	ticker := time.NewTicker(5 * time.Second)
+	for {
+		select {
+		case <-p.ctx.Done():
+			return
+		case <-ticker.C:
+			if p.closed {
+				return
+			}
+			err := p.detect()
+			if err == nil {
+				p.LiftBanOrder = 0
+				if p.AutoBanFlag {
+					logging.Errorf("[monitor] addr %s reconnected", p.Addr)
+				}
+				p.AutoBanFlag = false
+				break
+			} else {
+				time.Sleep(5 * time.Second)
+				err = p.detect()
+				if err == nil {
+					p.LiftBanOrder = 0
+					if p.AutoBanFlag {
+						logging.Errorf("[monitor] addr %s reconnected", p.Addr)
+					}
+					p.AutoBanFlag = false
+					break
+				}
+			}
+
+			p.LiftBanTime = time.Now().Add(60 * time.Second)
+			p.AutoBanFlag = true
+			logging.Errorf("[monitor] addr %s disconnected, baned for period, err: %s", p.Addr, err)
+		}
+	}
+}
+
+func (p *Pool) detect() error {
+	c, err := redis.Dial(
+		p.Addr,
+		p.Passwd,
+		redis.DialConnectTimeout(1*time.Second),
+		redis.DialReadTimeout(3*time.Second),
+		redis.DialWriteTimeout(3*time.Second),
+	)
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+	res, err := c.Do("PING")
+	if err != nil {
+		return err
+	}
+
+	if v, ok := res.(string); !ok {
+		return errors.New("unknown res")
+	} else if v != "PONG" {
+		return errors.New("invalid res" + v)
+	} else {
+		return nil
 	}
 }
 
