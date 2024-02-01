@@ -152,6 +152,10 @@ func (ls *listenServer) route(r *core.Msg, slot int32) (string, bool) {
 		return core.EngineGlobal.Slots2Node.Get(slot).Master.Addr, false
 	}
 
+	if r.Type == codec.ReqHscan || r.Type == codec.ReqSscan || r.Type == codec.ReqZscan {
+		return core.EngineGlobal.Slots2Node.Get(slot).Master.Addr, false
+	}
+
 	liveSlaves = liveSlaves[:0]
 
 	for _, v := range core.EngineGlobal.Slots2Node.Get(slot).Slaves {
