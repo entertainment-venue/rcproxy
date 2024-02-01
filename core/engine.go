@@ -104,7 +104,7 @@ func (eng *engine) start() (err error) {
 		// Initialize connection to the back-end redis cluster
 		for _, pool := range EngineGlobal.ProxyPool {
 			if pool.Get() == nil {
-				return perrors.Wrapf(err, "redis preconnect failed, addr: %s", pool.Addr)
+				return perrors.Errorf("redis preconnect failed, addr: %s", pool.Addr)
 			}
 		}
 	}
